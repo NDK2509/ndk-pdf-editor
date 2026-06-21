@@ -11,6 +11,7 @@ import '../widgets/page_thumbnail_sidebar.dart';
 import '../widgets/annotation_overlay.dart';
 import '../widgets/welcome_screen.dart';
 import '../widgets/status_bar.dart';
+import '../widgets/notes_sidebar.dart';
 
 class EditorPage extends StatefulWidget {
   const EditorPage({super.key});
@@ -119,6 +120,7 @@ class _EditorPageState extends State<EditorPage> {
                       document: _thumbnailDocument,
                     ),
                     Expanded(child: _buildMainArea()),
+                    NotesSidebar(provider: _provider),
                   ],
                 ),
               ),
@@ -153,6 +155,7 @@ class _EditorPageState extends State<EditorPage> {
       controller: _viewerController,
       params: PdfViewerParams(
         backgroundColor: AppTheme.surfaceDark,
+        scrollByMouseWheel: 1.0,
         pageOverlaysBuilder: (context, pageRect, page) {
           return [
             AnnotationOverlay(

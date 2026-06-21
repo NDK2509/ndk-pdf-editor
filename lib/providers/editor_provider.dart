@@ -226,4 +226,14 @@ class EditorProvider extends ChangeNotifier {
     _state = _state.copyWith(isSidebarOpen: !_state.isSidebarOpen);
     notifyListeners();
   }
+
+  void toggleNotesSidebar() {
+    _state = _state.copyWith(isNotesSidebarOpen: !_state.isNotesSidebarOpen);
+    notifyListeners();
+  }
+
+  void setPersonalNotes(String notes) {
+    _state = _state.copyWith(personalNotes: notes);
+    notifyListeners();
+  }
 }

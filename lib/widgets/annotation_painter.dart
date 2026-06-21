@@ -78,6 +78,7 @@ class AnnotationPainter extends CustomPainter {
         final paragraph = builder.build()..layout(const ui.ParagraphConstraints(width: 400));
         canvas.drawParagraph(paragraph, a.points.first);
       case AnnotationType.eraser:
+      case AnnotationType.select:
         break;
     }
   }

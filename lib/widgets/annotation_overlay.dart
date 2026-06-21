@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/pdf_annotation.dart';
 import '../models/editor_state.dart';
 import '../providers/editor_provider.dart';
+import '../theme/app_theme.dart';
 import 'annotation_painter.dart';
 
 /// Overlay widget that captures drawing gestures and renders annotations on a PDF page.
@@ -24,7 +25,51 @@ class _AnnotationOverlayState extends State<AnnotationOverlay> {
   List<Offset> _currentPoints = [];
   int _idCounter = 0;
 
+  Offset? _editingTextPosition;
+  final TextEditingController _textController = TextEditingController();
+  final FocusNode _textFocusNode = FocusNode();
+
   String _generateId() => 'ann_${widget.pageIndex}_${DateTime.now().millisecondsSinceEpoch}_${_idCounter++}';
+
+  @override
+  void initState() {
+    super.initState();
+    _textFocusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _textFocusNode.removeListener(_onFocusChange);
+    _textFocusNode.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_textFocusNode.hasFocus && _editingTextPosition != null) {
+      _submitText(widget.provider.state);
+    }
+  }
+
+  void _submitText(EditorState state) {
+    final text = _textController.text.trim();
+    if (text.isNotEmpty && _editingTextPosition != null) {
+      widget.provider.addAnnotation(PdfAnnotation(
+        id: _generateId(),
+        pageIndex: widget.pageIndex,
+        type: AnnotationType.text,
+        points: [_editingTextPosition!],
+        color: state.currentColor,
+        strokeWidth: state.currentStrokeWidth,
+        text: text,
+        fontSize: state.currentFontSize,
+      ));
+    }
+    setState(() {
+      _editingTextPosition = null;
+      _textController.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +80,76 @@ class _AnnotationOverlayState extends State<AnnotationOverlay> {
         final annotations = state.getPageAnnotations(widget.pageIndex);
         final tool = state.currentTool;
 
-        return GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTapUp: tool == AnnotationType.text ? (details) => _handleTextTap(details, state) : null,
-          onPanStart: tool != AnnotationType.text ? (details) => _handlePanStart(details, state) : null,
-          onPanUpdate: tool != AnnotationType.text ? (details) => _handlePanUpdate(details, state) : null,
-          onPanEnd: tool != AnnotationType.text ? (details) => _handlePanEnd(state) : null,
-          child: RepaintBoundary(
-            child: CustomPaint(
-              painter: AnnotationPainter(
-                annotations: annotations,
-                currentAnnotation: _currentAnnotation,
-              ),
-              size: Size.infinite,
+        final isDrawingTool = tool == AnnotationType.freehand ||
+            tool == AnnotationType.highlight ||
+            tool == AnnotationType.rectangle ||
+            tool == AnnotationType.circle ||
+            tool == AnnotationType.arrow ||
+            tool == AnnotationType.eraser;
+
+        final showOverlayInput = _editingTextPosition != null;
+
+        Widget content = RepaintBoundary(
+          child: CustomPaint(
+            painter: AnnotationPainter(
+              annotations: annotations,
+              currentAnnotation: _currentAnnotation,
             ),
+            size: Size.infinite,
+          ),
+        );
+
+        if (tool != AnnotationType.select || showOverlayInput) {
+          content = GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTapUp: tool == AnnotationType.text ? (details) => _handleTextTap(details, state) : null,
+            onPanStart: isDrawingTool ? (details) => _handlePanStart(details, state) : null,
+            onPanUpdate: isDrawingTool ? (details) => _handlePanUpdate(details, state) : null,
+            onPanEnd: isDrawingTool ? (details) => _handlePanEnd(state) : null,
+            child: content,
+          );
+        }
+
+        return IgnorePointer(
+          ignoring: tool == AnnotationType.select && !showOverlayInput,
+          child: Stack(
+            children: [
+              Positioned.fill(child: content),
+              if (showOverlayInput)
+                Positioned(
+                  left: _editingTextPosition!.dx,
+                  top: _editingTextPosition!.dy - 16,
+                  child: Container(
+                    width: 220,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      boxShadow: AppTheme.elevation2,
+                      border: Border.all(color: AppTheme.primary, width: 1.5),
+                    ),
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _textFocusNode,
+                      autofocus: true,
+                      maxLines: 1,
+                      keyboardType: TextInputType.text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Type note...',
+                        hintStyle: TextStyle(color: Colors.white30, fontSize: 13),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onSubmitted: (_) => _submitText(state),
+                    ),
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -56,6 +157,10 @@ class _AnnotationOverlayState extends State<AnnotationOverlay> {
   }
 
   void _handlePanStart(DragStartDetails details, EditorState state) {
+    if (_editingTextPosition != null) {
+      _submitText(state);
+    }
+    
     final pos = details.localPosition;
     _currentPoints = [pos];
 
@@ -112,54 +217,15 @@ class _AnnotationOverlayState extends State<AnnotationOverlay> {
     setState(() {});
   }
 
-  void _handleTextTap(TapUpDetails details, EditorState state) async {
-    final pos = details.localPosition;
-    final controller = TextEditingController();
-
-    final text = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2746),
-        title: const Text('Add Text Annotation'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: 'Enter text...',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF6C63FF)),
-            ),
-          ),
-          onSubmitted: (v) => Navigator.pop(ctx, v),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6C63FF)),
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-
-    if (text != null && text.isNotEmpty) {
-      widget.provider.addAnnotation(PdfAnnotation(
-        id: _generateId(),
-        pageIndex: widget.pageIndex,
-        type: AnnotationType.text,
-        points: [pos],
-        color: state.currentColor,
-        strokeWidth: state.currentStrokeWidth,
-        text: text,
-        fontSize: state.currentFontSize,
-      ));
+  void _handleTextTap(TapUpDetails details, EditorState state) {
+    if (_editingTextPosition != null) {
+      _submitText(state);
     }
+    setState(() {
+      _editingTextPosition = details.localPosition;
+      _textController.clear();
+    });
+    _textFocusNode.requestFocus();
   }
 
   void _tryErase(Offset pos) {

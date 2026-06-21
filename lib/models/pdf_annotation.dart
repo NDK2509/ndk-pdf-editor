@@ -2,6 +2,7 @@ import 'dart:ui';
 
 /// Types of annotations supported by the PDF editor.
 enum AnnotationType {
+  select,
   freehand,
   text,
   highlight,

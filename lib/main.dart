@@ -13,7 +13,7 @@ class PdfEditorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PDF Editor',
+      title: 'NDK PDF Editor',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       home: const EditorPage(),

@@ -16,6 +16,8 @@ class EditorState {
   final List<EditorAction> undoStack;
   final List<EditorAction> redoStack;
   final bool isSidebarOpen;
+  final bool isNotesSidebarOpen;
+  final String personalNotes;
   final bool isModified;
 
   const EditorState({
@@ -24,7 +26,7 @@ class EditorState {
     this.currentPage = 0,
     this.totalPages = 0,
     this.zoom = 1.0,
-    this.currentTool = AnnotationType.freehand,
+    this.currentTool = AnnotationType.select,
     this.currentColor = const Color(0xFFFF5252),
     this.currentStrokeWidth = 3.0,
     this.currentFontSize = 16.0,
@@ -32,6 +34,8 @@ class EditorState {
     this.undoStack = const [],
     this.redoStack = const [],
     this.isSidebarOpen = true,
+    this.isNotesSidebarOpen = false,
+    this.personalNotes = '',
     this.isModified = false,
   });
 
@@ -49,6 +53,8 @@ class EditorState {
     List<EditorAction>? undoStack,
     List<EditorAction>? redoStack,
     bool? isSidebarOpen,
+    bool? isNotesSidebarOpen,
+    String? personalNotes,
     bool? isModified,
   }) {
     return EditorState(
@@ -65,6 +71,8 @@ class EditorState {
       undoStack: undoStack ?? this.undoStack,
       redoStack: redoStack ?? this.redoStack,
       isSidebarOpen: isSidebarOpen ?? this.isSidebarOpen,
+      isNotesSidebarOpen: isNotesSidebarOpen ?? this.isNotesSidebarOpen,
+      personalNotes: personalNotes ?? this.personalNotes,
       isModified: isModified ?? this.isModified,
     );
   }

@@ -77,6 +77,13 @@ class EditorToolbar extends StatelessWidget {
               _divider(),
               // Drawing tools
               _toolToggle(
+                icon: Icons.pan_tool_rounded,
+                tooltip: 'Select & Navigate',
+                tool: AnnotationType.select,
+                currentTool: state.currentTool,
+                onPressed: () => provider.setTool(AnnotationType.select),
+              ),
+              _toolToggle(
                 icon: Icons.gesture_rounded,
                 tooltip: 'Freehand Draw',
                 tool: AnnotationType.freehand,
@@ -194,6 +201,13 @@ class EditorToolbar extends StatelessWidget {
                 tooltip: 'Toggle Sidebar',
                 onPressed: () => provider.toggleSidebar(),
               ),
+              _toolbarButton(
+                icon: state.isNotesSidebarOpen
+                    ? Icons.note_alt_rounded
+                    : Icons.note_alt_outlined,
+                tooltip: 'Toggle Notes Sidebar',
+                onPressed: () => provider.toggleNotesSidebar(),
+              ),
               const SizedBox(width: AppTheme.spacingSm),
             ],
           ),
@@ -221,7 +235,7 @@ class EditorToolbar extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         const Text(
-          'PDF Editor',
+          'NDK PDF Editor',
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 15,
