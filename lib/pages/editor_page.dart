@@ -12,6 +12,7 @@ import '../widgets/annotation_overlay.dart';
 import '../widgets/welcome_screen.dart';
 import '../widgets/status_bar.dart';
 import '../widgets/notes_sidebar.dart';
+import '../widgets/study_timer.dart';
 
 class EditorPage extends StatefulWidget {
   const EditorPage({super.key});
@@ -139,9 +140,20 @@ class _EditorPageState extends State<EditorPage> {
         if (_currentFilePath == null) {
           return WelcomeScreen(onOpenFile: _openFile);
         }
-        return Container(
-          color: AppTheme.surfaceDark.withValues(alpha: 0.5),
-          child: _buildPdfViewer(),
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                color: AppTheme.surfaceDark.withValues(alpha: 0.5),
+                child: _buildPdfViewer(),
+              ),
+            ),
+            const Positioned(
+              top: 16,
+              right: 16,
+              child: StudyTimerWidget(),
+            ),
+          ],
         );
       },
     );
