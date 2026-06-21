@@ -17,6 +17,7 @@ class EditorState {
   final List<EditorAction> redoStack;
   final bool isSidebarOpen;
   final bool isNotesSidebarOpen;
+  final bool isStudyModeEnabled;
   final String personalNotes;
   final bool isModified;
 
@@ -35,6 +36,7 @@ class EditorState {
     this.redoStack = const [],
     this.isSidebarOpen = true,
     this.isNotesSidebarOpen = false,
+    this.isStudyModeEnabled = false,
     this.personalNotes = '',
     this.isModified = false,
   });
@@ -54,6 +56,7 @@ class EditorState {
     List<EditorAction>? redoStack,
     bool? isSidebarOpen,
     bool? isNotesSidebarOpen,
+    bool? isStudyModeEnabled,
     String? personalNotes,
     bool? isModified,
   }) {
@@ -72,6 +75,7 @@ class EditorState {
       redoStack: redoStack ?? this.redoStack,
       isSidebarOpen: isSidebarOpen ?? this.isSidebarOpen,
       isNotesSidebarOpen: isNotesSidebarOpen ?? this.isNotesSidebarOpen,
+      isStudyModeEnabled: isStudyModeEnabled ?? this.isStudyModeEnabled,
       personalNotes: personalNotes ?? this.personalNotes,
       isModified: isModified ?? this.isModified,
     );

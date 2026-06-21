@@ -236,4 +236,9 @@ class EditorProvider extends ChangeNotifier {
     _state = _state.copyWith(personalNotes: notes);
     notifyListeners();
   }
+
+  void toggleStudyMode() {
+    _state = _state.copyWith(isStudyModeEnabled: !_state.isStudyModeEnabled);
+    notifyListeners();
+  }
 }

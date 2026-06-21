@@ -140,6 +140,7 @@ class _EditorPageState extends State<EditorPage> {
         if (_currentFilePath == null) {
           return WelcomeScreen(onOpenFile: _openFile);
         }
+        final state = _provider.state;
         return Stack(
           children: [
             Positioned.fill(
@@ -148,11 +149,12 @@ class _EditorPageState extends State<EditorPage> {
                 child: _buildPdfViewer(),
               ),
             ),
-            const Positioned(
-              top: 16,
-              right: 16,
-              child: StudyTimerWidget(),
-            ),
+            if (state.isStudyModeEnabled)
+              const Positioned(
+                top: 16,
+                right: 16,
+                child: StudyTimerWidget(),
+              ),
           ],
         );
       },
