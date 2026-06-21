@@ -8,8 +8,9 @@ if [ ! -f "$FLUTTER_BIN" ]; then
     if which flutter >/dev/null; then
         FLUTTER_BIN="flutter"
     else
-        echo "Error: Flutter SDK not found at $FLUTTER_BIN or in PATH."
-        exit 1
+        echo "Flutter SDK not found. Setting it up automatically..."
+        ./setup_flutter.sh
+        FLUTTER_BIN="$HOME/flutter-sdk/bin/flutter"
     fi
 fi
 
